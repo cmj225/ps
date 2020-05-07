@@ -1,3 +1,5 @@
+// https://www.acmicpc.net/problem/15649
+
 #include <iostream>
 #include <stdio.h>
 #include <vector>
@@ -18,8 +20,10 @@ void print(std::vector<int>::iterator begin,
 }
 
 void pick(int k) {
-   if (k == 0)
+   if (k == 0) {
       print(ans.begin(), ans.end());
+			return;
+	 }
 
    for (int i = 0; i < n; i++) {
       if (vec[i] == true)

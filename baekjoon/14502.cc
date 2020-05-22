@@ -1,66 +1,93 @@
+// https://www.acmicpc.net/problem/14502
+
 #include <iostream>
 #include <vector>
+#include <queue>
 #include <algorithm>
 
 int N, M = -1; // [3, 8]
-int plane[8][8] = -1;
-int max_safe = -1;
-std::vector<int>
+std::vector<int> lab;
+int max = -1;
+std::queue<std::vector<int>::iterator> q;
 
-int calSafe () {
-  int temp_plane[8][8] = plane; 
+void calSafe(std::vector<int>& temp) {
+	int nSafe = 0;
+	for (auto iter = temp.begin(); iter != temp.end(); iter++) {
+		if (*iter == 0)
+			nSafe++;
+	}
+	max = max > nSafe ? max : nSafe;
+}
 
-  // spread
-  for (int i = 0; i < N; i++) {
-	  for (int j = 0; j < M; j++) {
-		  if (temp_plane[i][j] == 2) {
-			  if (j != N-1 && temp_plane[i][j+1] == 0)
-				  plane[i][j+1] = 2;
-        if (i != N-1 && temp_plane[i+1][j] == 0)
-				  temp_plane[i+1][j] = 2;
+void spread(std::vector<int> temp) {
+	// bfs
+	for (auto iter = temp.begin(); iter != temp.end(); iter++) {
+		if (*iter == 2) {
+			q.push(iter);
+		}
+	}
+
+	while (!q.empty()) {
+		int size = q.size();
+
+		for (int i = 0; i < size; i++) {
+			auto virus = q.front(); q.pop();
+
+			int index = std::distance(temp.begin(), virus);
+			if (M != 1 && index % M != 0 && temp[index - 1] == 0) {
+				temp[index - 1] = 2;
+				q.push(virus - 1);
+			}
+			if (M != 1 && index % M != M - 1 && temp[index + 1] == 0) {
+				temp[index + 1] = 2;
+				q.push(virus + 1);
+			}
+			if (index / M != 0 && temp[index - M] == 0) {
+				temp[index - M] = 2;
+				q.push(virus - M);
+			}
+			if (index / M != N - 1 && temp[index + M] == 0) {
+				temp[index + M] = 2;
+				q.push(virus + M);
 			}
 		}
 	}
 
-  // check safe region
-	int temp = 0;
-  for (int i = 0; i < N; i++) {
-	  for (int j = 0; j < M; j++) {
-		  if(temp_plane[i][j] == 0)
-			  temp++;
-		}
-	}
+	calSafe(temp);
+
+	return ;
 }
 
-
-// 8 * 8 * 8 = 512
-void contagion (int n) {
-  if (n == 0) {
-    std::max(max_safe, calSafe());
+void pick(int n, std::vector<int>::iterator it) {
+	if (n == 0) {
+		spread(lab);
 		return;
 	}
 
-	// pick
-	for (int i = 0; i < N; i++) {
-	  for (int j = 0; j < M; j++) {
-	    if(plane[i][j] == 0) { 
-			  plane[i][j] = 1;
-			  contagion(n-1);
-				plane[i][j] = 0;
-			}
+	for (auto iter = it; iter != lab.end(); iter++) {
+		if (*iter == 0) {
+			*iter = 1;
+			std::vector<int>::iterator temp = iter;
+			pick(n - 1, ++temp);
+			*iter = 0;
 		}
+		continue;
 	}
- 
 }
+
 int main() {
-  std::cin >> N >> M;
+	// get lab status
+	std::cin >> N >> M;
+	int size = N * M;
 
-	for (int i = 0; i < N; i++) {
-	  for (int j = 0; j < M; j++) {
-      std::cin >> plane[i][j];
-		}
+	for (int i = 0; i < size; i++) {
+		int temp;
+		std::cin >> temp;
+		lab.push_back(temp);
 	}
- 
-	std::cout << 
 
+	// dfs
+	pick(3, lab.begin());
+
+	std::cout << max << std::endl;
 }
